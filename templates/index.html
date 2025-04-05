@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Code Review Assistant</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style id="code-styles"></style>
+    <style>
+        .loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+        }
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .highlight pre { padding: 1rem; border-radius: 0.5rem; }
+        .rtl { direction: rtl; }
+        .ltr { direction: ltr; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="loading" id="loading">
+        <div class="flex items-center justify-center h-full">
+            <div class="loading-spinner"></div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">
+            AI-Powered Code Review Assistant
+            <div class="text-2xl mt-2 text-gray-600">مساعد مراجعة الكود المدعوم بالذكاء الاصطناعي</div>
+        </h1>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <!-- Input Section -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-700">Input Code</h2>
+                <textarea id="code-input" 
+                          class="w-full h-96 p-4 border rounded-lg font-mono text-sm"
+                          placeholder="Paste your code here..."></textarea>
+                <button onclick="analyzeCode()" 
+                        class="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    Analyze Code / تحليل الكود
+                </button>
+            </div>
+
+            <!-- Code Display Section -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-700">Code Preview</h2>
+                <div id="highlighted-code" class="overflow-x-auto"></div>
+            </div>
+        </div>
+
+        <!-- Analysis Results Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- English Analysis -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-700">Analysis (English)</h2>
+                <div id="analysis-results-en" class="prose max-w-none ltr"></div>
+            </div>
+
+            <!-- Arabic Analysis -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-700 text-right">التحليل (العربية)</h2>
+                <div id="analysis-results-ar" class="prose max-w-none rtl"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function analyzeCode() {
+            const codeInput = document.getElementById('code-input').value;
+            if (!codeInput.trim()) {
+                alert('Please enter some code to analyze / الرجاء إدخال الكود للتحليل');
+                return;
+            }
+
+            // Show loading spinner
+            const loadingElement = document.getElementById('loading');
+            loadingElement.style.display = 'block';
+
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `code=${encodeURIComponent(codeInput)}`
+                });
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                // Update code styles
+                document.getElementById('code-styles').textContent = data.css_styles;
+                
+                // Update highlighted code
+                document.getElementById('highlighted-code').innerHTML = data.highlighted_code;
+                
+                // Update analysis in both languages
+                document.getElementById('analysis-results-en').innerHTML = data.analysis_en;
+                document.getElementById('analysis-results-ar').innerHTML = data.analysis_ar;
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while analyzing the code / حدث خطأ أثناء تحليل الكود');
+            } finally {
+                // Hide loading spinner
+                loadingElement.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html> 
