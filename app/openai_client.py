@@ -1,6 +1,6 @@
 import openai
 from typing import Dict, Optional
-from .logger import setup_logger
+from logger import setup_logger
 
 logger = setup_logger()
 
@@ -10,7 +10,7 @@ class OpenAIClient:
     def __init__(self, api_key: str):
         """Initialize OpenAI client with API key."""
         self.api_key = api_key
-        openai.api_key = api_key
+        self.client = openai.OpenAI(api_key=api_key)
     
     def analyze_code(self, code: str, code_type: str, language: str = "English") -> str:
         """Analyze code using OpenAI API."""
@@ -25,7 +25,7 @@ class OpenAIClient:
         try:
             system_prompt = self._get_system_prompt(code_type, language)
             
-            response = openai.ChatCompletion.create(
+            response = self.client.chat.completions.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": system_prompt},
@@ -34,17 +34,17 @@ class OpenAIClient:
                 temperature=0.7,
                 max_tokens=1500
             )
-            return response.choices[0].message['content']
+            return response.choices[0].message.content
             
-        except openai.error.RateLimitError:
-            logger.error("OpenAI API rate limit exceeded")
-            return "Error: Rate limit exceeded. Please try again later."
-        except openai.error.AuthenticationError:
-            logger.error("Invalid OpenAI API key")
-            return "Error: Invalid API key. Please check your configuration."
-        except openai.error.APIError as e:
-            logger.error(f"OpenAI API error: {str(e)}")
-            return f"Error: OpenAI API error occurred. Please try again later."
+        except openai.RateLimitError:
+            logger.error("Rate limit exceeded. Please try again later.")
+            return None
+        except openai.AuthenticationError:
+            logger.error("Authentication failed. Please check your API key.")
+            return None
+        except openai.APIError as e:
+            logger.error(f"API error: {str(e)}")
+            return None
         except Exception as e:
             logger.error(f"Unexpected error during code analysis: {str(e)}")
             return f"Error analyzing code: {str(e)}"

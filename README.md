@@ -1,6 +1,55 @@
 # AI-Powered Code Review Assistant
 
-An intelligent code review assistant that uses AI to analyze code and provide detailed feedback on code quality, best practices, potential bugs, security concerns, and performance improvements.
+## Project Description
+This project is an AI-powered code review assistant that analyzes code using the OpenAI API. It provides feedback on code quality, syntax, and best practices in both English and Arabic.
+
+## Setup Instructions
+1. **Clone the Repository**: 
+   ```bash
+   git clone <git@github.com:chawki-ifaoui/code-review.git>
+   cd <codereview>
+   ```
+
+2. **Install Dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Configure Environment Variables**:
+   Create a `.env` file in the root directory with the following variables:
+   ```
+   OPENAI_API_KEY=your_openai_api_key
+   GITHUB_TOKEN=your_github_token
+   FLASK_ENV=development
+   ```
+
+## Usage Instructions
+1. **Run the Application**:
+   ```bash
+   python app/app.py
+   ```
+
+2. **Access the Web Interface**:
+   Open a web browser and navigate to `http://localhost:8000`.
+
+3. **Analyze Code**:
+   - Paste your code into the input field.
+   - Click the "Analyze Code" button to receive feedback.
+
+## Environment Variables
+- `OPENAI_API_KEY`: Your OpenAI API key.
+- `GITHUB_TOKEN`: Your GitHub API token for webhook integration.
+- `FLASK_ENV`: Set to `development` for debug mode, or `production` for production mode.
+
+## API Documentation
+### Endpoints
+- **POST /analyze**: Analyze the provided code and return the analysis results.
+  - **Request Body**: `code` (string)
+  - **Response**: JSON object with analysis results.
+
+- **POST /webhook**: Handle GitHub webhook events for pull requests.
+  - **Request Body**: JSON object with pull request data.
+  - **Response**: JSON object with status and message.
 
 ## Features
 
@@ -9,46 +58,6 @@ An intelligent code review assistant that uses AI to analyze code and provide de
 - Modern, responsive UI
 - Detailed feedback on multiple aspects of code quality
 - Markdown rendering for analysis results
-
-## Setup
-
-1. Clone this repository:
-```bash
-git clone <repository-url>
-cd codereview
-```
-
-2. Create a virtual environment and activate it:
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows, use: venv\Scripts\activate
-```
-
-3. Install the required dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-4. Create a `.env` file in the project root and add your OpenAI API key:
-```
-OPENAI_API_KEY=your_api_key_here
-```
-
-## Running the Application
-
-1. Make sure your virtual environment is activated
-2. Run the Flask application:
-```bash
-python app/app.py
-```
-3. Open your browser and navigate to `http://localhost:5000`
-
-## Usage
-
-1. Paste your code into the input textarea on the left side
-2. Click the "Analyze Code" button
-3. Wait for the analysis to complete
-4. Review the highlighted code and AI-generated feedback on the right side
 
 ## Security Note
 
@@ -59,4 +68,4 @@ python app/app.py
 
 - Python 3.7+
 - OpenAI API key
-- Modern web browser # code-review
+- Modern web browser
