@@ -7,6 +7,53 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style id="code-styles"></style>
     <style>
+        body {
+            background: linear-gradient(to right, #ece9e6, #ffffff);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        h1 {
+            background-color: #3498db;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .container {
+            margin-top: 20px;
+        }
+
+        button {
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            border-radius: 10px;
+        }
+
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
         .loading {
             display: none;
             position: fixed;
@@ -32,6 +79,11 @@
         .highlight pre { padding: 1rem; border-radius: 0.5rem; }
         .rtl { direction: rtl; }
         .ltr { direction: ltr; }
+        #codeChart {
+            max-width: 300px;
+            max-height: 300px;
+            margin: 0 auto;
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -54,8 +106,7 @@
                 <textarea id="code-input" 
                           class="w-full h-96 p-4 border rounded-lg font-mono text-sm"
                           placeholder="Paste your code here..."></textarea>
-                <button onclick="analyzeCode()" 
-                        class="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                <button id="analyzeButton" class="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
                     Analyze Code / تحليل الكود
                 </button>
             </div>
@@ -83,15 +134,44 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('analyzeButton').addEventListener('click', analyzeCode);
+        });
+
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), wait);
+            };
+        }
+
+        const debouncedAnalyzeCode = debounce(analyzeCode, 300);
+
+        function throttle(func, limit) {
+            let inThrottle;
+            return function(...args) {
+                const context = this;
+                if (!inThrottle) {
+                    func.apply(context, args);
+                    inThrottle = true;
+                    setTimeout(() => inThrottle = false, limit);
+                }
+            };
+        }
+
+        const throttledAnalyzeCode = throttle(analyzeCode, 300);
+
         async function analyzeCode() {
             const codeInput = document.getElementById('code-input').value;
             if (!codeInput.trim()) {
-                alert('Please enter some code to analyze / الرجاء إدخال الكود للتحليل');
+                showError('Please enter some code to analyze / الرجاء إدخال الكود للتحليل');
                 return;
             }
 
-            // Show loading spinner
             const loadingElement = document.getElementById('loading');
             loadingElement.style.display = 'block';
 
@@ -107,27 +187,35 @@
                 const data = await response.json();
                 
                 if (data.error) {
-                    alert(data.error);
+                    showError(data.error);
                     return;
                 }
 
-                // Update code styles
                 document.getElementById('code-styles').textContent = data.css_styles;
-                
-                // Update highlighted code
                 document.getElementById('highlighted-code').innerHTML = data.highlighted_code;
-                
-                // Update analysis in both languages
                 document.getElementById('analysis-results-en').innerHTML = data.analysis_en;
                 document.getElementById('analysis-results-ar').innerHTML = data.analysis_ar;
 
+                createChart(data.correctPercentage, data.needsImprovementPercentage);
+
             } catch (error) {
                 console.error('Error:', error);
-                alert('An error occurred while analyzing the code / حدث خطأ أثناء تحليل الكود');
+                showError('An error occurred while analyzing the code / حدث خطأ أثناء تحليل الكود');
             } finally {
-                // Hide loading spinner
                 loadingElement.style.display = 'none';
             }
+        }
+
+        function showError(message) {
+            const modal = document.getElementById('errorModal');
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = message;
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('errorModal');
+            modal.style.display = 'none';
         }
     </script>
 </body>
